@@ -1,7 +1,11 @@
 {
-    "frameRate": 30,
-    "stripCount": 2,
-    "stripLength": 30,
-    "ssid": "Your SSID",
-    "password": "mezaparks6"
+    "public": {
+        "frameRate": 30,
+        "stripCount": 5,
+        "stripLength": 6
+    },
+    "private": {
+        "ssid": "Your SSID",
+        "password": "mezaparks6"
+    }
 }
