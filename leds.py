@@ -4,14 +4,12 @@ import globals
 import led_lamps
 import server
 
-def no_debug():
-    import esp
-    # this can be run from the REPL as well
-    esp.osdebug(None)
+globals.no_debug()
 
-no_debug()
+led_lamps.fill((0,0,0))
 
-globals.np.fill((0,0,0))
+server.connect()
 
 _thread.start_new_thread(led_lamps.redraw_thread, ())
-_thread.start_new_thread(server.demo_server, ())
+
+_thread.start_new_thread(server.server, ())
