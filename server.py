@@ -21,14 +21,14 @@ def connect():
 # Parse GET parameters
 def qs_parse(qs):
 
-  parameters = {}
-  ampersandSplit = qs.split("&")
+    parameters = {}
+    ampersandSplit = qs.split("&")
 
-  for element in ampersandSplit:
-    equalSplit = element.split("=")
-    parameters[equalSplit[0]] = equalSplit[1] if 1 in equalSplit else equalSplit[0]
+    for element in ampersandSplit:
+        equalSplit = element.split("=")
+        parameters[equalSplit[0]] = equalSplit[1] if len(equalSplit) == 2 else equalSplit[0]
 
-  return parameters
+    return parameters
 
 # Process GET request
 def get(path):
@@ -55,28 +55,36 @@ def get(path):
         return {"cmd": "static", "content": f.read()}
 
 # Socket server
-def server():
+def server(micropython_optimize = False):
 
     s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     s.bind(('',80))
     s.listen(5)
 
     while True:
-        conn,addr=s.accept()
-        request=conn.recv(1024)
-        # print(request)
-        # request=str(request)
-        request = re.compile('\r?\n').split(request.decode('utf-8'))
+        try:
+            conn,addr=s.accept()
+            request=conn.recv(4096)
+            print(conn)
 
-        method,path,protocol = request[0].split()
-        response=open('client/index.html', 'r').read();
-        parseGet = get(path)
+            request = re.compile('\r?\n').split(request.decode('utf-8'))
+            method,path,protocol = request[0].split()
 
-        if parseGet["cmd"] == "static":
-            response = parseGet["content"]
-        else:
-            if parseGet["cmd"] == "get" and parseGet["route"][0] in routes.routes:
-                response = routes.routes[parseGet["route"][0]](parseGet["route"][1:], parseGet["params"])
+            response = ""
+
+            parseGet = get(path)
+
+            if parseGet["cmd"] == "static":
+                response = parseGet["content"]
+            else:
+                if parseGet["cmd"] == "get" and parseGet["route"][0] in routes.routes:
+                    response = routes.routes[parseGet["route"][0]](parseGet["route"][1:], parseGet["params"])
+                    print(response, response == "")
+                    if response == "":
+                        response = open('client/index.html', 'r').read();
+
+        except ValueError:
+            response = open('client/index.html', 'r').read();
 
         conn.send(response)
         conn.close()
