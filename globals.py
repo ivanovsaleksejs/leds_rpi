@@ -21,17 +21,13 @@ config = config["public"]
 configFile.close()
 
 # Init neopixel
-np = neopixel.NeoPixel(machine.Pin(26), config["stripCount"] * config["stripLength"], timing=1)
+np = neopixel.NeoPixel(machine.Pin(26), config["stripCount"] * config["stripLength"], timing=True)
 
 # Init strip data
 strip_data = [
     {
-        "stopRedraw": False,
-        "redrawn": False,
-        "reset": True,
         "animation_name": "",
         "animation_data": {},
-        "LEDs": [(0, 0, 0) for _ in range (0, config["stripLength"])]
     } for _ in range (0, config["stripCount"])
 ]
 
