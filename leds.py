@@ -1,4 +1,6 @@
 import _thread
+import machine
+import neopixel
 
 import globals
 import led_lamps
@@ -6,10 +8,21 @@ import server
 
 globals.no_debug()
 
-led_lamps.fill((0,0,0))
+(config, secrets) = globals.readConf()
 
-server.connect()
+stripData = [
+    {
+        "animation_name": "",
+        "animation_data": {},
+    } for _ in range (0, config["stripCount"])
+]
 
-_thread.start_new_thread(led_lamps.redraw_thread, ())
+np = neopixel.NeoPixel(machine.Pin(26), config["stripCount"] * config["stripLength"], timing=1)
 
-_thread.start_new_thread(server.server, ())
+np.fill((0,0,0))
+
+server.connect(secrets)
+
+_thread.start_new_thread(led_lamps.redraw_thread, (np, config, stripData))
+
+_thread.start_new_thread(server.server, (np, config, stripData))

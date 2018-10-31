@@ -1,18 +1,18 @@
 import network
 import usocket as socket
 import ure as re
+import json
 
-import globals
 import routes
 
 # Connect to wifi
-def connect():
+def connect(secrets):
 
     net = network.WLAN(network.STA_IF)
 
     if not net.isconnected():
         net.active(True)
-        net.connect(globals.secrets["ssid"], globals.secrets["password"])
+        net.connect(secrets["ssid"], secrets["password"])
         while not net.isconnected():
             pass
 
@@ -55,7 +55,7 @@ def get(path):
         return {"cmd": "static", "content": f.read()}
 
 # Socket server
-def server(micropython_optimize = False):
+def server(np, config, stripData, micropython_optimize = False):
 
     s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     s.bind(('',80))
@@ -78,7 +78,7 @@ def server(micropython_optimize = False):
                 response = parseGet["content"]
             else:
                 if parseGet["cmd"] == "get" and parseGet["route"][0] in routes.routes:
-                    response = routes.routes[parseGet["route"][0]](parseGet["route"][1:], parseGet["params"])
+                    response = routes.routes[parseGet["route"][0]](parseGet["route"][1:], parseGet["params"], stripData)
                     print(response, response == "")
                     if response == "":
                         response = open('client/index.html', 'r').read();

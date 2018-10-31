@@ -3,38 +3,29 @@ import gc
 import globals
 import time
 
-# Fill all LEDs with one color (usually for turning them off)
-def fill(color):
-
-    globals.np.fill(color)
-
 # Thread that runs through animation data and updates np list
-def redraw_thread():
+def redraw_thread(np, config, stripData):
 
-    globals.frameTime = time.ticks_ms()
-    np = globals.np
-    config = globals.config
-
-    enum = list(enumerate(globals.strip_data))
+    enum = list(enumerate(stripData))
 
     while globals.redraw_active:
+        frameStart = time.ticks_ms()
 
+        print("start", frameStart)
         for index, strip in enum:
             if strip["animation_name"] == "blink":
                 blink(np, config, index, strip["animation_data"])
 
+        print("before write", time.ticks_ms())
         np.write()
 
-        gc.collect()
-        print(gc.mem_free())
+        print("after write", time.ticks_ms())
 
-        frameTime = time.ticks_diff(time.ticks_ms(), globals.frameTime)
+        frameTime = time.ticks_diff(time.ticks_ms(), frameStart)
 
         if frameTime <= 1000/config["frameRate"]:
             time.sleep_ms(int(1000/config["frameRate"]) - frameTime)
 
-
-        globals.frameTime = time.ticks_ms()
 
 #
 # ANIMATION FUNCTIONS
@@ -108,7 +99,3 @@ def blink(np, config, strip_number, animation_data, half=True, pulse=False):
 
     position = position - 1 if direction else position + 1
     animation_data["position"] = position
-
-    del stripColor
-
-    gc.collect()
