@@ -55,7 +55,7 @@ def get(path):
         return {"cmd": "static", "content": f.read()}
 
 # Socket server
-def server(np, config, stripData, micropython_optimize = False):
+def server(config, stripData, micropython_optimize = False):
 
     s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     s.bind(('',80))
