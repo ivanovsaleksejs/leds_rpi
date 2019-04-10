@@ -1,15 +1,9 @@
 import json
-import esp
 
 # Returns public config
 def dumpconf(config):
 
     return json.dumps(readConf()[0])
-
-# Disables esp debug
-def no_debug():
-
-    esp.osdebug(None)
 
 def readConf():
     # Load config file. Put secrets in separate variable
