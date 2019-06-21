@@ -1,11 +1,11 @@
 [Unit]
 Description=The lamp server
-After=multi-useri.target
+After=multi-user.target
 
 [Service]
 Type=idle
-WorkingDirectory=/home/pagrabs/git/leds
-ExecStart=/usr/bin/python3 /home/pagrabs/git/leds/leds.py > /home/pi/myscript.log
+WorkingDirectory=/home/pi/git/leds
+ExecStart=/usr/bin/python3 /home/pi/git/leds/leds.py > /home/pi/myscript.log
 
 [Install]
 WantedBy=multi-user.target

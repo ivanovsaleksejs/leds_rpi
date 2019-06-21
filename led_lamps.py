@@ -57,8 +57,8 @@ def redraw_thread(np, config, stripData):
 
         frameTime = time_ms() - frameStart
 
-        if frameTime <= msPerFrame:
-            time.sleep((msPerFrame - frameTime)/1000)
+        if frameTime < msPerFrame:
+            time.sleep((msPerFrame - frameTime - 1)/1000)
 
 
 #
@@ -79,6 +79,9 @@ def blink(np, config, strip_number, animation_data, half=True, pulse=False, soli
         animation_time = animation_data["speed"]
         animation_data["fullCycle"] = 0
 
+        length = animation_data["zoneLength"] * animation_data["stripLength"]
+
+        animation_data["totalLength"] = length
 
         # quotient = 8. ** (2000. / (config["frameRate"] * animation_time ))
 
@@ -90,6 +93,7 @@ def blink(np, config, strip_number, animation_data, half=True, pulse=False, soli
         color[np.order[0]] = config["gamma"][int(current_color[0])]
         color[np.order[1]] = config["gamma"][int(current_color[1])]
         color[np.order[2]] = config["gamma"][int(current_color[2])]
+        color = bytearray(color) * length
 
         if solid:
             animation_data["frames"] = [color for _ in range (0, frameCount+1)]
@@ -108,7 +112,7 @@ def blink(np, config, strip_number, animation_data, half=True, pulse=False, soli
                 color[np.order[0]] = config["gamma"][int(current_color[0] / quotient)]
                 color[np.order[1]] = config["gamma"][int(current_color[1] / quotient)]
                 color[np.order[2]] = config["gamma"][int(current_color[2] / quotient)]
-                color = bytearray(color)
+                color = bytearray(color) * length
 
                 animation_data["frames"].append(color)
 
@@ -139,11 +143,7 @@ def blink(np, config, strip_number, animation_data, half=True, pulse=False, soli
 
     animation_data["direction"] = direction
 
-    color = animation_data["frames"][position]
-
-    length = animation_data["zoneLength"] * animation_data["stripLength"]
-
-    np.buf[animation_data["offset"] * np.bpp : (animation_data["offset"] + length) * np.bpp] = color * length
+    np.buf[animation_data["offset"] * np.bpp : (animation_data["offset"] + animation_data["totalLength"]) * np.bpp] = animation_data["frames"][position]
 
     if direction:
         position -= 1
