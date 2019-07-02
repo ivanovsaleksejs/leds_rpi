@@ -49,11 +49,14 @@ def redraw_thread(np, config, stripData):
                 blink(np, config, index, strip["animation_data"], True, False, True)
             if strip["animation_name"] == "blinkrng_solid":
                 blinkrng(np, config, index, strip["animation_data"], True, False, True)
+            if strip["animation_name"] == "solid":
+                solid(np, config, index, strip["animation_data"])
 
         # _thread.start_new_thread(neopixel_write, (machine.Pin(26), np.buf, 1))
         t = Thread(target=neopixel_write, args=(pin, np.buf))
         t.start()
         #np.show()
+        #neopixel_write(pin, np.buf)
 
         frameTime = time_ms() - frameStart
 
@@ -64,6 +67,37 @@ def redraw_thread(np, config, stripData):
 #
 # ANIMATION FUNCTIONS
 #
+
+#
+# Solid color function
+#
+def solid(np, config, strip_number, animation_data):
+    if not "drawn" in animation_data or not animation_data["drawn"]:
+        animation_data["totalLength"] = animation_data["zoneLength"] * animation_data["stripLength"]
+        current_color = animation_data["color"]
+        color = [0] * 3
+        color[np.order[0]] = config["gamma"][int(current_color[0])]
+        color[np.order[1]] = config["gamma"][int(current_color[1])]
+        color[np.order[2]] = config["gamma"][int(current_color[2])]
+        while True:
+            try:
+                color = bytearray(color * animation_data["totalLength"])
+                np.buf[animation_data["offset"] * np.bpp : (animation_data["offset"] + animation_data["totalLength"]) * np.bpp] = color
+                animation_data["drawn"] = True
+            except MemoryError:
+                gc.collect()
+                print("here")
+                continue
+            break
+    if "flicker" in animation_data and animation_data["flicker"] and random.randint(0, 50) == random.randint(0, 50):
+            l = random.randint(0, animation_data["zoneLength"] - 1)
+            tl = animation_data["stripLength"] * l
+            print (l, tl)
+            color = bytearray((0,0,0) * animation_data["stripLength"])
+            np.buf[(animation_data["offset"] + tl) * np.bpp : (animation_data["offset"] + tl + animation_data["stripLength"]) * np.bpp] = color
+            animation_data["drawn"] = False
+
+        
 
 # Simple blink function
 # Fades from given color to black and back
@@ -102,7 +136,8 @@ def blink(np, config, strip_number, animation_data, half=True, pulse=False, soli
             animation_data["frames"] = [color]
 
             startColor = max(animation_data["color"])
-            stopColor = startColor/2
+
+            stopColor = startColor*animation_data["quot"]
 
 
             for i in range(0, frameCount):
@@ -142,8 +177,12 @@ def blink(np, config, strip_number, animation_data, half=True, pulse=False, soli
         direction = True
 
     animation_data["direction"] = direction
-
-    np.buf[animation_data["offset"] * np.bpp : (animation_data["offset"] + animation_data["totalLength"]) * np.bpp] = animation_data["frames"][position]
+    if "flicker" in animation_data and animation_data["flicker"] and random.randint(0, 100) == random.randint(0, 100):
+        length = animation_data["zoneLength"] * animation_data["stripLength"]
+        color = bytearray((0,0,0)) * length
+    else:
+        color = animation_data["frames"][position]
+    np.buf[animation_data["offset"] * np.bpp : (animation_data["offset"] + animation_data["totalLength"]) * np.bpp] = color
 
     if direction:
         position -= 1
